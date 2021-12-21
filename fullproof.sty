@@ -1,0 +1,152 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fullproof}[2021/11/17 FullProof proof-writing package]
+
+\RequirePackage{xcolor}
+\RequirePackage{xifthen}
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+\RequirePackage{marvosym}
+\RequirePackage{hyperref}
+\RequirePackage{aliascnt}
+\RequirePackage{xstring}
+\RequirePackage{pgffor}
+\RequirePackage{changepage}
+\RequirePackage{graphicx}
+
+\setlength\parindent{0.5cm}
+
+\definecolor{Definition@color}{RGB}{255, 0, 0}
+\definecolor{Theorem@color}{RGB}{200, 0, 200}
+\definecolor{Lemma@color}{RGB}{255, 0, 200}
+\definecolor{Statement@color}{RGB}{0, 200, 0}
+\definecolor{Cor@color}{RGB}{0,0,200}
+\definecolor{Note@color}{RGB}{255,100,100}
+
+\newcounter{major@Definition}
+\newcounter{minor@Definition}
+\setcounter{major@Definition}{1}
+\setcounter{minor@Definition}{1}
+
+\newcounter{major@Theorem}
+\newcounter{minor@Theorem}
+\setcounter{major@Theorem}{1}
+\setcounter{minor@Theorem}{1}
+
+\newaliascnt{major@Lemma}{minor@Theorem}
+\newcounter{minor@Lemma}
+\setcounter{minor@Lemma}{1}
+
+\newcounter{Cor@count}
+\setcounter{Cor@count}{1}
+
+\newcommand{\math@sec}[2][]{\StrCut{#1}{,}{\ref}{\name} %
+            \IfStrEq{#2}{Lemma} { %
+                \IfStrEq{\name}{} %
+                {\noindent\textbf{\textcolor{#2@color}{#2 \arabic{major@Theorem}.\arabic{minor@Theorem}.\arabic{minor@#2}: }}}%
+                {\noindent\textbf{\textcolor{#2@color}{\name  (\arabic{major@Theorem}.\arabic{minor@Theorem}.\arabic{minor@#2}): }}}%
+                \IfStrEq{\ref}{}%
+                    {}%
+                    {\hypertarget{mth:\ref}{} \newcounter{lminor@\ref} \newcounter{minor@\ref} \newcounter{major@\ref}\setcounter{lminor@\ref}{\value{minor@#2}}\setcounter{minor@\ref}{\value{minor@Theorem}}\setcounter{major@\ref}{\value{major@Theorem}}%
+                \IfStrEq{\name}{}%
+                {\expandafter\xdef\csname \ref\endcsname{\arabic{major@\ref}.\arabic{minor@\ref}.\arabic{lminor@\ref}}}%
+                {\expandafter\xdef\csname \ref\endcsname{\name}}}
+            } % Else:
+            { %
+            \IfStrEq{\name}{} %
+            {\noindent\textbf{\textcolor{#2@color}{#2 \arabic{major@#2}.\arabic{minor@#2}: }}} %
+            {\noindent\textbf{\textcolor{#2@color}{\name \phantom{.} (\arabic{major@#2}.\arabic{minor@#2}): }}} %
+            \IfStrEq{\ref}{}%
+                {}%
+                {\hypertarget{mth:\ref}{} \newcounter{minor@\ref} \newcounter{major@\ref} \setcounter{minor@\ref}{\value{minor@#2}} \setcounter{major@\ref}{\value{major@#2}}%
+                \IfStrEq{\name}{}%
+                    {\expandafter\xdef\csname \ref\endcsname{\arabic{major@\ref}.\arabic{minor@\ref}}}
+                    {\expandafter\xdef\csname \ref\endcsname{\name}}
+                }}}
+
+\newcommand{\supmath@sec}[2][]{%
+    \IfStrEq{#2}{Lemma}{\stepcounter{major@Theorem}\setcounter{minor@Theorem}{1}}{\stepcounter{major@#2}}\setcounter{minor@#2}{1}\math@sec[#1]{#2}\stepcounter{minor@#2} %
+}
+\newcommand{\submath@sec}[2][]{\math@sec[#1]{#2}\stepcounter{minor@#2}}
+
+% \begin{minipage}[t]{\dimexpr\textwidth-1cm}
+
+\newenvironment{definition}[1][]{\medskip\noindent\submath@sec[#1]{Definition}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip}
+\newenvironment{definition*}[1][]{\medskip\noindent\supmath@sec[#1]{Definition}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip}
+
+\newcommand{\steptheorem}{\stepcounter{major@Theorem}\setcounter{minor@Theorem}{1}\setcounter{minor@Lemma}{1}}
+
+\newenvironment{theorem}[2][]{\medskip\noindent\setcounter{minor@Lemma}{1}\submath@sec[#1]{Theorem}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}#2\end{adjustwidth}\par\noindent\textbf{Proof:}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip\setcounter{Cor@count}{1}}
+\newenvironment{theorem*}[2][]{\medskip\noindent\setcounter{minor@Lemma}{1}\supmath@sec[#1]{Theorem}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}#2\end{adjustwidth}\par\noindent\textbf{Proof:}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip\setcounter{Cor@count}{1}}
+
+\newenvironment{lemma}[2][]{\medskip\noindent\submath@sec[#1]{Lemma}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}#2\end{adjustwidth}\par\noindent\textbf{Proof:}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip\setcounter{Cor@count}{1}}
+\newenvironment{lemma*}[2][]{\medskip\noindent\supmath@sec[#1]{Lemma}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}#2\end{adjustwidth}\par\noindent\textbf{Proof:}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip\setcounter{Cor@count}{1}}
+    
+\newenvironment{statement}[1]{\medskip\noindent\textbf{\textcolor{Statement@color}{Statement: }}%
+    \par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt} #1 \end{adjustwidth}%
+    \par\noindent\textbf{Proof:}%
+    \par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}
+    {\end{adjustwidth}\bigskip}
+
+\newenvironment{corollary}[1]{\medskip\noindent\textbf{\textcolor{Cor@color}{Corollary \arabic{Cor@count}: }} \par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt} #1 \end{adjustwidth} \par\noindent\textbf{Proof:}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}{\end{adjustwidth}\bigskip\stepcounter{Cor@count}}
+
+\newenvironment{note}{\medskip\noindent\textbf{\textcolor{Note@color}{Note: }}\par\begin{adjustwidth}{0.75cm}{}\setlength{\parindent}{0pt}}{\end{adjustwidth}}
+
+\newcommand{\defcolor}[1]{\textcolor{Definition@color}{#1}}
+\newcommand{\theoremcolor}[1]{\textcolor{Theorem@color}{#1}}
+\newcommand{\lemmacolor}[1]{\textcolor{Lemma@color}{#1}}
+\newcommand{\statementcolor}[1]{\textcolor{Statement@color}{#1}}
+
+\newcommand{\separate}{\medskip\hrule\medskip}
+
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\bN}{\mathbb{N}}
+\newcommand{\bZ}{\mathbb{Z}}
+\newcommand{\bQ}{\mathbb{Q}}
+\newcommand{\bR}{\mathbb{R}}
+\newcommand{\bC}{\mathbb{C}}
+\newcommand{\bF}{\mathbb{F}}
+\newcommand{\bP}{\mathbb{P}}
+
+\newcommand{\powset}{\mathcal{P}}
+
+\newcommand{\qed}{\blacksquare}
+\newcommand{\cont}{\mbox{\Lightning}}
+
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\tuple}[1]{\left(#1\right)}
+
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\iprod}[1]{\left\langle#1\right\rangle}
+\newcommand{\norm}[1]{\abs{\abs{#1}}}
+
+\DeclareMathOperator*{\proj}{\mathbf{\scalebox{2}{$\pi$}}}
+
+\newcommand{\nspace}{\operatorname{N}}
+\newcommand{\lspan}{\operatorname{span}}
+\newcommand{\trace}{\operatorname{trace}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\spec}{\operatorname{spec}}
+\newcommand{\adj}{\operatorname{adj}}
+\newcommand{\image}{\operatorname{Im}}
+
+\newcommand{\hori}{\text{-----}}
+\newcommand{\zspace}{\left\{0\right\}}
+\newcommand{\mat}[1][n]{\begin{pmatrix} \alpha_{11}&\cdots&\alpha_{1#1}\\\vdots&\ddots&\vdots\\\alpha_{#1 1}&\dots&\alpha_{#1#1}\end{pmatrix}}
+
+\def\mref{\@ifstar\@mref\@@mref}
+
+\newcommand{\@mref}[2]{\hyperlink{mth:#2}{#1}}
+\newcommand{\@@mref}[2][]{\hyperlink{mth:#2}{#1 \csname #2\endcsname}}
+
+\newcommand{\fullproof}{\shortcut{\supmath@sec}{definitionheader*,Definition | theoremheader*,Theorem} %
+                        \shortcut{\submath@sec}{definitionheader,Definition | theoremheader,Theorem}}
+
+\renewcommand{\Re}{\operatorname{Re}}
